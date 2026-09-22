@@ -1,34 +1,12 @@
 version: '3.8'
 
 services:
-  # ==========================================
-  # SERVICE 1: THE BRAIN (Ollama + DeepSeek)
-  # ==========================================
-  ollama-server:
-    image: ollama/ollama:latest
-    container_name: tamilrootlabs-brain
-    ports:
-      - "11434:11434" # Expose to local network
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu] # Give access to RTX 5070
-    volumes:
-      - ./backend/models:/root/.ollama # Link to local folder so models persist
-
-  # ==========================================
-  # SERVICE 2: THE MIDDLEWARE (Python/FastAPI)
-  # ==========================================
   python-api:
     build: ./backend
     container_name: tamilrootlabs-api
     ports:
-      - "8000:8000" # Expose API to local network
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      # Docker internal network URL for Ollama (Uses service name)
-      - OLLAMA_URL=http://ollama-server:11434
-    depends_on:
-      - ollama-server # Wait for Ollama to start first
+      - OLLAMA_URL=http://host.docker.internal:11434
