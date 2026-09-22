@@ -1,0 +1,19 @@
+# --- NEVER PUSH AI MODELS ---
+*.gguf
+*.bin
+*.safetensors
+backend/models/
+
+# --- NEVER PUSH DATABASES ---
+data/tamil_rag_db/
+
+# --- NEVER PUSH RAW AUDIO (except brand voice) ---
+*.wav
+*.mp3
+!data/brand_voice/brand_reference.wav
+
+# --- PYTHON SYSTEM FILES ---
+__pycache__/
+*.pyc
+.env
+
