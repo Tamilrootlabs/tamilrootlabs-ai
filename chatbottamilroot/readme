@@ -1,0 +1,81 @@
+# Tamilroot Voice Chatbot
+
+A small voice assistant I built to test how fast a cloud-based voice chatbot can feel. You press Enter, say something, and it talks back a couple of seconds later.
+
+It's an early MVP, so expect rough edges. But it works, and it runs fine on a basic laptop because nothing heavy runs locally.
+
+## How it works
+
+When you speak, your audio goes to Groq's Whisper model, which turns it into text. That text goes to a Groq language model (`gpt-oss-20b`) that writes a short reply. Finally, Microsoft's Edge-TTS reads the reply out loud in a natural voice.
+
+That's the whole pipeline: microphone, Whisper, LLM, Edge-TTS, speakers.
+
+Because everything runs in the cloud, there are no model files to download and no GPU needed. The only requirements are a microphone, speakers, and an internet connection.
+
+## What it can do
+
+It remembers the last few messages, so you can ask follow-up questions like "what about the second one?" and it will know what you mean.
+
+You can control it with your voice too. Say "goodbye" (or "bye", "exit", "quit") to close it. Say "reset" or "new conversation" if you want it to forget what you talked about.
+
+It also tries not to embarrass itself. Very short noises and silence get ignored, so you won't get random replies to a cough. If the network hiccups, it retries, and if a request still fails, the assistant just tells you and carries on instead of crashing.
+
+## Getting started
+
+You'll need Python 3.10 or newer and a free Groq API key from the Groq console.
+
+First, set up a virtual environment and install the packages:
+
+```bash
+python -m venv myenv
+source myenv/bin/activate      # on Windows: myenv\Scripts\activate
+pip install -r requirements.txt
+```
+
+If PyAudio refuses to install, you're probably missing the PortAudio system library. On Fedora run `sudo dnf install portaudio-devel python3-devel gcc`. On Ubuntu or Debian run `sudo apt install portaudio19-dev python3-dev`, then try the pip command again.
+
+Next, create a file called `.env` in the project folder and put your key in it:
+
+```
+GROQ_API_KEY=your_key_here
+```
+
+Please don't commit this file. Add `.env` and `myenv/` to your `.gitignore` so your key never ends up on GitHub.
+
+Then start the assistant:
+
+```bash
+python tamilroot_chatbot.py
+```
+
+Wait for "System ready", press Enter, and start talking. Press Ctrl+C whenever you want to quit.
+
+## Changing the defaults
+
+If you want a different model or voice, you don't need to touch the code. Add any of these lines to your `.env` file:
+
+```
+LLM_MODEL=openai/gpt-oss-20b
+STT_MODEL=whisper-large-v3-turbo
+TTS_VOICE=en-US-AriaNeural
+```
+
+The default speech model is the "turbo" version, which is faster and cheaper. If accuracy matters more to you, set `STT_MODEL=whisper-large-v3`.
+
+## If something goes wrong
+
+**"GROQ_API_KEY is not set."** The script can't find your key. Check that `.env` sits in the same folder as the script, that the line has no quotes or spaces around the `=`, and that you've run `pip install python-dotenv`.
+
+**A wall of "ALSA lib ... unable to open slave" messages.** These are noisy but harmless Linux audio warnings. If the assistant hears you, you can ignore them.
+
+**The transcription is nonsense.** Speak clearly and a bit closer to the mic. The language is locked to English, so mumbling or speaking another language will give odd results.
+
+**No voice reply.** Check your system volume and your internet connection, since Edge-TTS needs to be online.
+
+## A note on privacy
+
+Your microphone audio is sent to Groq to be transcribed, and the text of your conversation is sent to Groq to generate replies. Please don't use this for anything sensitive.
+
+## What I'd like to add next
+
+Tamil language support is the big one, using Whisper with `language="ta"` and the `ta-IN-PallaviNeural` voice. After that, a wake word so you don't have to press Enter, an offline voice fallback for when the internet is down, and some proper tests.
